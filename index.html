@@ -14,7 +14,8 @@
 </head>
 <body class="text-slate-800">
 
-    <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        
         <div class="text-center mb-10">
             <img src="https://media.dgd.vn/assets/settings/6a42db0d-2181-4fc7-b17f-f3f08b445ac2.png" alt="Logo DGD" class="h-16 mx-auto mb-4 object-contain mix-blend-multiply">
             <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
@@ -23,17 +24,18 @@
             </h1>
             <p class="text-slate-500">
                 Xem chi tiết nội dung sự kiện 
-                <a href="https://dgd.vn/news/su-kien-dau-gia-mien-phi-tien-tuoi-ve-vi" style="text-decoration: underline; font-weight: bold;">Tại đây</a>
+                <a href="https://dgd.vn/news/su-kien-dau-gia-mien-phi-tien-tuoi-ve-vi" target="_blank" style="text-decoration: underline; font-weight: bold;">Tại đây</a>
             </p>
         </div>
 
         <div class="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-6 gap-4">
-            <input type="text" id="searchInput" placeholder="🔍 Nhập ID DGD để tìm..." class="w-full md:w-1/3 px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500">
+            <input type="text" id="searchInput" placeholder="🔍 Nhập Tên giao dịch để tìm..." class="w-full md:w-1/3 px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500">
             
-            <select id="statusFilter" class="w-full md:w-1/4 px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-500">
+            <select id="statusFilter" class="w-full md:w-1/4 px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-500 font-medium">
                 <option value="all">Tất cả trạng thái</option>
-                <option value="Đã chuyển 100k">Đã chuyển 100k</option>
-                <option value="Đang xử lý">Đang xử lý</option>
+                <option value="Đã trả thưởng">✅ Đã trả thưởng</option>
+                <option value="Đang xử lý">⏳ Đang xử lý</option>
+                <option value="Lỗi">🚫 Các trường hợp Vi phạm</option>
             </select>
         </div>
 
@@ -43,7 +45,8 @@
                     <thead>
                         <tr class="bg-slate-50 border-b border-slate-200 text-sm uppercase tracking-wider text-slate-500">
                             <th class="p-4 font-semibold">STT</th>
-                            <th class="p-4 font-semibold">ID Giao Dịch</th>
+                            <th class="p-4 font-semibold text-orange-700">Tên Giao Dịch</th>
+                            <th class="p-4 font-semibold text-center">Link FB</th>
                             <th class="p-4 font-semibold">Tên Chủ TK</th>
                             <th class="p-4 font-semibold">Ngân Hàng</th>
                             <th class="p-4 font-semibold">Số Tài Khoản</th>
@@ -64,13 +67,12 @@
 
     <script>
         // ==========================================
-        // ⚠️ BẠN HÃY DÁN CÁI LINK API CỦA BẠN VÀO ĐÂY
+        // Đã cập nhật đúng Link API của bạn
         // ==========================================
         const API_URL = "https://script.google.com/macros/s/AKfycbx5Ez7mWUZ0x55UWElGim4QADI6_nOhzN2CTOhgXWmBPTGv4GZ-DXTxI8F-5zrg3QwbgA/exec";
 
         let allData = [];
 
-        // Hàm gọi dữ liệu
         async function fetchData() {
             try {
                 const response = await fetch(API_URL);
@@ -89,28 +91,39 @@
             }
         }
 
-        // Hàm hiển thị dữ liệu ra bảng
         function renderTable(data) {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = "";
 
             if(data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">Không tìm thấy dữ liệu phù hợp.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Không tìm thấy dữ liệu phù hợp.</td></tr>`;
                 return;
             }
 
             data.forEach((item, index) => {
-                // Tạo nhãn màu sắc cho trạng thái trả thưởng
-                let statusBadge = item.da_tra_thuong === "Đã chuyển 100k" 
-                    ? `<span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1">✅ 100k Đã Về Ví</span>`
-                    : `<span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1">⏳ Đang xử lý</span>`;
+                // XỬ LÝ NHÃN TRẠNG THÁI TỰ ĐỘNG THEO API MỚI
+                let statusBadge = "";
+                if (item.trang_thai === "Đã trả thưởng") {
+                    statusBadge = `<span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1">✅ Đã trả thưởng</span>`;
+                } else if (item.trang_thai === "Đang xử lý") {
+                    statusBadge = `<span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1">⏳ Đang xử lý</span>`;
+                } else {
+                    // MỌI TRƯỜNG HỢP CÒN LẠI (Vi phạm, Trùng SĐT...) ĐỀU ĐƯỢC BÔI ĐỎ
+                    statusBadge = `<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1">🚫 ${item.trang_thai}</span>`;
+                }
+
+                // XỬ LÝ NÚT LINK FB (Có link thì hiện nút, không thì gạch ngang)
+                let fbLinkHTML = (item.link_fb && item.link_fb !== "#" && item.link_fb !== "")
+                    ? `<a href="${item.link_fb.startsWith('http') ? item.link_fb : 'https://' + item.link_fb}" target="_blank" class="inline-flex items-center gap-1 text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded text-xs font-semibold transition-colors shadow-sm">🔗 Link</a>`
+                    : `<span class="text-slate-400">-</span>`;
 
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50 transition-colors";
                 tr.innerHTML = `
                     <td class="p-4 text-slate-500">${index + 1}</td>
-                    <td class="p-4 font-semibold text-orange-600">${item.id_giao_dich}</td>
-                    <td class="p-4">${item.ten_chu_tk}</td>
+                    <td class="p-4 font-bold text-orange-600">${item.ten_giao_dich}</td>
+                    <td class="p-4 text-center">${fbLinkHTML}</td>
+                    <td class="p-4 font-medium">${item.ten_chu_tk}</td>
                     <td class="p-4"><span class="bg-slate-100 px-2 py-1 rounded text-xs text-slate-600 font-medium">${item.ten_ngan_hang}</span></td>
                     <td class="p-4 font-mono text-slate-600">${item.so_tai_khoan}</td>
                     <td class="p-4 text-center">${statusBadge}</td>
@@ -119,7 +132,7 @@
             });
         }
 
-        // --- CÁC HÀM TÌM KIẾM VÀ LỌC ---
+        // --- HÀM LỌC ĐÃ ĐƯỢC TỐI ƯU ---
         document.getElementById('searchInput').addEventListener('input', filterData);
         document.getElementById('statusFilter').addEventListener('change', filterData);
 
@@ -128,15 +141,28 @@
             const statusFilter = document.getElementById('statusFilter').value;
 
             const filteredData = allData.filter(item => {
-                const matchSearch = item.id_giao_dich.toLowerCase().includes(searchTerm);
-                const matchStatus = statusFilter === "all" || item.da_tra_thuong === statusFilter;
+                // So sánh theo Tên giao dịch
+                const matchSearch = item.ten_giao_dich.toLowerCase().includes(searchTerm);
+                
+                // Logic gom nhóm Lỗi
+                let matchStatus = false;
+                if (statusFilter === "all") {
+                    matchStatus = true;
+                } else if (statusFilter === "Đã trả thưởng" && item.trang_thai === "Đã trả thưởng") {
+                    matchStatus = true;
+                } else if (statusFilter === "Đang xử lý" && item.trang_thai === "Đang xử lý") {
+                    matchStatus = true;
+                } else if (statusFilter === "Lỗi" && item.trang_thai !== "Đã trả thưởng" && item.trang_thai !== "Đang xử lý") {
+                    matchStatus = true;
+                }
+
                 return matchSearch && matchStatus;
             });
 
             renderTable(filteredData);
         }
 
-        // Chạy ngay khi mở web
+        // Khởi động
         fetchData();
     </script>
 </body>
